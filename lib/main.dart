@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert'; // Add this import for JSON encoding/decoding
 
 void main() {
   runApp(MyApp());
@@ -25,7 +26,8 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  List<Map<String, dynamic>> _todos = [];
+  List<Map<String, Object>> _todos =
+      []; // Use Map<String, Object> for consistency
 
   @override
   void initState() {
@@ -35,21 +37,20 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   Future<void> _loadTodos() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _todos = (prefs.getStringList('todos') ?? []).map((item) {
-        List<String> splitItem = item.split('##');
-        return {'title': splitItem[0], 'completed': splitItem[1] == 'true'};
-      }).toList();
-    });
+    final String? todosString = prefs.getString('todos');
+    if (todosString != null) {
+      setState(() {
+        _todos = (jsonDecode(todosString) as List)
+            .map((item) => item as Map<String, Object>)
+            .toList();
+      });
+    }
   }
 
   Future<void> _saveTodos() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setStringList(
-        'todos',
-        _todos
-            .map((item) => '${item['title']}##${item['completed']}')
-            .toList());
+    final String todosString = jsonEncode(_todos);
+    prefs.setString('todos', todosString);
   }
 
   void _addTodo() {
@@ -85,7 +86,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   void _editTodoAt(int index) {
     TextEditingController controller =
-        TextEditingController(text: _todos[index]['title']);
+        TextEditingController(text: _todos[index]['title'] as String);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -122,7 +123,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   void _toggleTodoCompleted(int index) {
     setState(() {
-      _todos[index]['completed'] = !_todos[index]['completed'];
+      _todos[index]['completed'] = !(_todos[index]['completed'] as bool);
       _saveTodos();
     });
   }
@@ -145,7 +146,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
               itemCount: _todos.length,
               itemBuilder: (context, index) {
                 return Dismissible(
-                  key: Key(_todos[index]['title']),
+                  key: Key(_todos[index]['title'] as String),
                   background: Container(color: Colors.red),
                   onDismissed: (direction) {
                     _removeTodoAt(index);
@@ -155,16 +156,16 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
                       leading: Checkbox(
-                        value: _todos[index]['completed'],
+                        value: _todos[index]['completed'] as bool,
                         onChanged: (bool? value) {
                           _toggleTodoCompleted(index);
                         },
                       ),
                       title: Text(
-                        _todos[index]['title'],
+                        _todos[index]['title'] as String,
                         style: TextStyle(
                           fontSize: 18,
-                          decoration: _todos[index]['completed']
+                          decoration: (_todos[index]['completed'] as bool)
                               ? TextDecoration.lineThrough
                               : TextDecoration.none,
                         ),
