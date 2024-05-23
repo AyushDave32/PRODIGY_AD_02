@@ -36,6 +36,10 @@ _editTodoAt(int index): Displays a dialog to edit an existing task.
 _removeTodoAt(int index): Removes a task from the list.
 _toggleTodoCompleted(int index): Toggles the completed status of a task.
 
+![image](https://github.com/AyushDave32/PRODIGY_AD_02/assets/72338309/d8992960-8f5a-414a-bf1b-ec7255bf6182)
+
+![image](https://github.com/AyushDave32/PRODIGY_AD_02/assets/72338309/cc499f9c-80aa-49b4-a045-5fd3078288c9)
+
 ***Dependencies***
 Flutter
 SharedPreferences
